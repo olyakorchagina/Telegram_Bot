@@ -8,7 +8,7 @@ import requests
 import telegram
 from dotenv import load_dotenv
 
-from exceptions import (GetApiAnswerException, MissingVariableException,
+from exceptions import (GetApiAnswerException, MissingKeyException,
                         UndocumentException)
 
 load_dotenv()
