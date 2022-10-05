@@ -7,9 +7,9 @@ from http import HTTPStatus
 import requests
 import telegram
 from dotenv import load_dotenv
-from telegram import Bot
 
-import exceptions
+from exceptions import (GetApiAnswerException, MissingKeyException,
+                        MissingVariableException, UndocumentException)
 
 load_dotenv()
 
@@ -54,7 +54,9 @@ def get_api_answer(current_timestamp):
         response = requests.get(ENDPOINT, headers=HEADERS, params=params)
         if response.status_code != HTTPStatus.OK:
             logger.error(f'Ошибка. Статус ответа: {response.status_code}')
-            raise GetApiAnswerException(f'Ошибка. Статус ответа: {response.status_code}')
+            raise GetApiAnswerException(
+                f'Ошибка. Статус ответа: {response.status_code}'
+            )
         logger.debug('Запрос выполнен')
     except Exception as error:
         logger.error(f'Сбой при запросе к API: {error}')
@@ -83,19 +85,19 @@ def parse_status(homework):
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
 
-    if homework_name == None:
+    if homework_name is None:
         logger.error('Отсутствует ожидаемый ключ словаря в ответе API')
         raise KeyError(
             'Отсутствует ожидаемый ключ словаря в ответе API'
         )
-    if homework_status == None:
+    if homework_status is None:
         logger.error('Отсутствует ожидаемый ключ словаря в ответе API')
         raise KeyError(
             'Отсутствует ожидаемый ключ словаря в ответе API'
         )
 
     verdict = HOMEWORK_STATUSES.get(homework_status)
-    if verdict == None:
+    if verdict is None:
         raise UndocumentException(
             'Недокументированный статус домашней работы'
         )
@@ -105,9 +107,9 @@ def parse_status(homework):
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-    if (PRACTICUM_TOKEN == None
-            or TELEGRAM_TOKEN == None
-            or TELEGRAM_CHAT_ID == None):
+    if (PRACTICUM_TOKEN is None
+            or TELEGRAM_TOKEN is None
+            or TELEGRAM_CHAT_ID is None):
         logger.critical('Отсутствуют необходимые переменные окружения!')
         return False
     return True
