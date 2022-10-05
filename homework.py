@@ -39,7 +39,6 @@ logger.setLevel(logging.DEBUG)
 
 def send_message(bot, message):
     """Отправка сообщения в Telegram чат."""
-
     try:
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         logger.info('Сообщение отправлено')
@@ -49,7 +48,6 @@ def send_message(bot, message):
 
 def get_api_answer(current_timestamp):
     """Запрос к API Практикум.Домашка."""
-
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
@@ -68,7 +66,6 @@ def get_api_answer(current_timestamp):
 
 def check_response(response):
     """Проверка ответа от API."""
-
     if type(response) != dict:
         raise TypeError('Должен вернуться словарь')
     try:
@@ -85,7 +82,6 @@ def check_response(response):
 
 def parse_status(homework):
     """Проверка статуса домашней работы."""
-
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
 
@@ -111,7 +107,6 @@ def parse_status(homework):
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-
     if (PRACTICUM_TOKEN is None
             or TELEGRAM_TOKEN is None
             or TELEGRAM_CHAT_ID is None):
@@ -122,7 +117,6 @@ def check_tokens():
 
 def main():
     """Основная логика работы бота."""
-
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     while True:
