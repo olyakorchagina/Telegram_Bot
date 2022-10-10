@@ -41,8 +41,10 @@ def send_message(bot, message):
     try:
         logger.info('Отправка сообщения')
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
-    except TelegramError as error:
-        raise TelegramError(f'Ошибка при отправке сообщения: {error}')
+    except telegram.error.TelegramError as error:
+        raise telegram.error.TelegramError(
+            f'Ошибка при отправке сообщения: {error}'
+        )
 
 
 def get_api_answer(current_timestamp):
@@ -58,7 +60,7 @@ def get_api_answer(current_timestamp):
     else:
         if response.status_code != HTTPStatus.OK:
             raise GetApiAnswerException(
-                f'Ошибка при запросе к API. Статус ответа: {response.status_code}'
+                f'Ошибка запроса к API. Статус ответа: {response.status_code}'
             )
     return response.json()
 
