@@ -61,7 +61,7 @@ def get_api_answer(current_timestamp):
     else:
         if response.status_code != HTTPStatus.OK:
             raise GetApiAnswerException(
-                f'Ошибка при получении ответа от API: {ENDPOINT}, {HEADERS}, {params}.'
+                f'Ошибка при ответе от API: {ENDPOINT}, {HEADERS}, {params}.'
                 f'Статус ответа: {response.status_code}'
             )
     return response.json()
