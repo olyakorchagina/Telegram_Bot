@@ -30,16 +30,15 @@ VERDICTS = {
 logging.basicConfig(
     format='%(asctime)s, %(name)s, %(levelname)s,  %(message)s',
     handlers=[logging.StreamHandler(sys.stdout)],
-    level=logging.ERROR
+    level=logging.DEBUG
 )
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def send_message(bot, message):
     """Отправка сообщения в Telegram чат."""
     try:
-        logger.info('Отправка сообщения')
+        logger.info(f'Отправка статуса домашки: {message}')
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
     except telegram.error.TelegramError as error:
         raise telegram.error.TelegramError(
@@ -54,13 +53,16 @@ def get_api_answer(current_timestamp):
     try:
         logger.debug('Отправка запроса')
         response = requests.get(ENDPOINT, headers=HEADERS, params=params)
-        logger.debug('Запрос выполнен')
+        logger.debug('Запрос выполнен, ответ получен')
     except Exception as error:
-        raise GetApiAnswerException(f'Сбой при запросе к API: {error}')
+        raise GetApiAnswerException(
+            f'Сбой при запросе: {ENDPOINT}, {HEADERS}, {params}. {error}'
+        )
     else:
         if response.status_code != HTTPStatus.OK:
             raise GetApiAnswerException(
-                f'Ошибка запроса к API. Статус ответа: {response.status_code}'
+                f'Ошибка при получении ответа от API: {ENDPOINT}, {HEADERS}, {params}.'
+                f'Статус ответа: {response.status_code}'
             )
     return response.json()
 
@@ -68,10 +70,16 @@ def get_api_answer(current_timestamp):
 def check_response(response):
     """Проверка ответа от API."""
     if not isinstance(response, dict):
-        raise TypeError('Должен вернуться словарь')
+        raise TypeError(
+            f'Тип полученных данных не соответствует ожидаемому'
+            f'Ожидается dict'
+        )
     homeworks = response.get('homeworks')
     if not isinstance(homeworks, list):
-        raise TypeError('Должен вернуться список')
+        raise TypeError(
+            f'Тип полученных данных не соответствует ожидаемому'
+            f'Ожидается list'
+        )
     return homeworks
 
 
@@ -80,9 +88,13 @@ def parse_status(homework):
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
 
-    if None in [homework_status, homework_name]:
+    if homework_name is None:
         raise KeyError(
-            'Отсутствует ожидаемый ключ словаря в ответе API'
+            'Отсутствует ключ словаря "homework_name" в ответе API'
+        )
+    if homework_status is None:
+        raise KeyError(
+            'Отсутствует ключ словаря "status" в ответе API'
         )
 
     verdict = VERDICTS.get(homework_status)
@@ -96,32 +108,31 @@ def parse_status(homework):
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-    if not (PRACTICUM_TOKEN is None
-            or TELEGRAM_TOKEN is None
-            or TELEGRAM_CHAT_ID is None):
-        return True
-    logger.critical('Отсутствуют необходимые переменные окружения!')
+    tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
+    return all(tokens)
+
 
 
 def main():
     """Основная логика работы бота."""
-    check_tokens()
+    if not check_tokens():
+        logger.critical('Отсутствуют необходимые переменные окружения!')
+        sys.exit('Отсутствуют необходимые переменные окружения!')
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            logger.debug('Ответ получен')
-        except Exception as error:
-            logger.error(f'Сбой в работе программы: {error}')
-        else:
             homeworks = check_response(response)
             if len(homeworks) != 0:
                 last_homework = response.get('homeworks')[0]
                 message = parse_status(last_homework)
                 send_message(bot, message)
-                current_timestamp = response.get('current_date')
-            logger.debug('Статус не изменился')
+            else:
+                logger.debug('Статус не изменился')
+            current_timestamp = response.get('current_date')
+        except Exception as error:
+            logger.error(f'Сбой в работе программы: {error}')
         finally:
             time.sleep(RETRY_TIME)
 

@@ -8,7 +8,6 @@ class GetApiAnswerException(Exception):
             self.message = None
 
     def __str__(self):
-        print('calling str')
         if self.message:
             return 'GetApiAnswerException, {0} '.format(self.message)
         else:
@@ -25,7 +24,6 @@ class UndocumentException(Exception):
             self.message = None
 
     def __str__(self):
-        print('calling str')
         if self.message:
             return 'UndocumentException, {0} '.format(self.message)
         else:
