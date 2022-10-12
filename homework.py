@@ -71,14 +71,12 @@ def check_response(response):
     """Проверка ответа от API."""
     if not isinstance(response, dict):
         raise TypeError(
-            f'Тип полученных данных не соответствует ожидаемому'
-            f'Ожидается dict'
+            f'Ожидаются данные типа dict, получен: {type(response)}'
         )
     homeworks = response.get('homeworks')
     if not isinstance(homeworks, list):
         raise TypeError(
-            f'Тип полученных данных не соответствует ожидаемому'
-            f'Ожидается list'
+            f'Ожидаются данные типа list, получен: {type(homeworks)}'
         )
     return homeworks
 
@@ -110,7 +108,6 @@ def check_tokens():
     """Проверка доступности переменных окружения."""
     tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
     return all(tokens)
-
 
 
 def main():
