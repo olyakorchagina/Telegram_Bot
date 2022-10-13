@@ -70,14 +70,10 @@ def get_api_answer(current_timestamp):
 def check_response(response):
     """Проверка ответа от API."""
     if not isinstance(response, dict):
-        raise TypeError(
-            f'Ожидаются данные типа dict, получен: {type(response)}'
-        )
+        raise TypeError('Ожидаются данные типа dict')
     homeworks = response.get('homeworks')
     if not isinstance(homeworks, list):
-        raise TypeError(
-            f'Ожидаются данные типа list, получен: {type(homeworks)}'
-        )
+        raise TypeError('Ожидаются данные типа list')
     return homeworks
 
 
@@ -106,17 +102,18 @@ def parse_status(homework):
 
 def check_tokens():
     """Проверка доступности переменных окружения."""
-    tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
-    return all(tokens)
+    return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
 
 
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
-        logger.critical('Отсутствуют необходимые переменные окружения!')
-        sys.exit('Отсутствуют необходимые переменные окружения!')
+        message = 'Отсутствуют необходимые переменные окружения!'
+        logger.critical(message)
+        sys.exit(message)
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
+    current_status = ''
     while True:
         try:
             response = get_api_answer(current_timestamp)
@@ -124,9 +121,9 @@ def main():
             if len(homeworks) != 0:
                 last_homework = response.get('homeworks')[0]
                 message = parse_status(last_homework)
-                send_message(bot, message)
-            else:
-                logger.debug('Статус не изменился')
+                if message != current_status:
+                    send_message(bot, message)
+                    current_status = message
             current_timestamp = response.get('current_date')
         except Exception as error:
             logger.error(f'Сбой в работе программы: {error}')
